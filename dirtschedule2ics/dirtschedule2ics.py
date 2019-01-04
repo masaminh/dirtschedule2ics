@@ -1,14 +1,17 @@
+"""ダートグレード競走のスケジュール一覧をiCalendar形式にする."""
 import argparse
-from collections import namedtuple
-from datetime import datetime
 import re
 import sys
+from collections import namedtuple
+from datetime import datetime
+
+import requests
 from bs4 import BeautifulSoup
 from icalendar import Calendar, Event, vDate
-import requests
 
 
 def main():
+    """メイン関数."""
     parser = argparse.ArgumentParser()
     parser.add_argument('input', nargs='?',
                         default='http://www.keiba.go.jp/dirtrace/schedule.html'
@@ -27,14 +30,19 @@ def main():
 
 
 def get_racelist(html):
+    """レース情報のリストの取得."""
     soup = BeautifulSoup(html, 'html.parser')
     race = soup.findAll('li', class_='race')
+    year_line = soup.h3.string
+    match = re.fullmatch(r'レース一覧（(\d{4})年）', year_line)
+    year = int(match.group(1))
 
-    return [x for x in (get_race(x) for x in race)
+    return [x for x in (get_race(x, year) for x in race)
             if not x.course.startswith('JRA')]
 
 
-def get_race(race):
+def get_race(race, year):
+    """レース情報の取得."""
     grade_code = race.get('class')[1]
     grade_table = {'jpn1': 'JpnⅠ', 'jpn2': 'JpnⅡ', 'jpn3': 'JpnⅢ',
                    'g1': 'GⅠ', 'g2': 'GⅡ', 'g3': 'GⅢ', 'jpn1Central': 'JpnⅠ',
@@ -42,7 +50,7 @@ def get_race(race):
     grade = grade_table[grade_code]
     date_string = race.find('p', class_='date').string
     date_match = re.fullmatch(r'(\d{1,2})/(\d{1,2})（.+）', date_string)
-    date = datetime(2018, int(date_match.group(1)), int(date_match.group(2)))
+    date = datetime(year, int(date_match.group(1)), int(date_match.group(2)))
     name = race.find('p', class_='name').string
     course = race.find('p', class_='course').string.split()[0] + '競馬場'
 
@@ -52,6 +60,7 @@ def get_race(race):
 
 
 def race2event(race):
+    """レース情報をiCalendarのイベントに変換する."""
     event = Event()
     event.add('SUMMARY', race.name + '(' + race.grade + ')')
     event.add('DTSTART', vDate(race.date))

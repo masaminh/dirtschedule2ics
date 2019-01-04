@@ -1,14 +1,19 @@
+"""dirtschedule2ics.pyのテスト."""
 from collections import namedtuple
 from datetime import datetime
 from unittest import TestCase
+
 from bs4 import BeautifulSoup
-from icalendar import vDate
+
 import dirtschedule2ics.dirtschedule2ics as d2i
 
 
 class TestDirtSchedule2Ics(TestCase):
+    """dirtschedule2ics.pyのテスト."""
+
     def test_get_racelist(self):
-        html = '''<html><body><ul>
+        """get_racelistのテスト."""
+        html = '''<html><body><h3>レース一覧（2018年）</h3><ul>
 <li class="race g2">
 <p class="date">1/21（日）</p>
 <p class="name">東海ステークス</p>
@@ -36,7 +41,8 @@ class TestDirtSchedule2Ics(TestCase):
         self.assertEqual(races[0].course, '大井競馬場')
 
     def test_get_race(self):
-        html = '''<html><body><ul>
+        """get_raceのテスト."""
+        html = '''<html><body><h3>レース一覧（2018年）</h3><ul>
 <li class="race jpn3 mare">
 <p class="date">1/24（水）</p>
 <p class="name">TCK女王盃</p>
@@ -45,14 +51,15 @@ class TestDirtSchedule2Ics(TestCase):
 </li>
 </ul></body></html>'''
         soup = BeautifulSoup(html, 'html.parser')
-        race = d2i.get_race(soup.find('li', class_='race'))
+        race = d2i.get_race(soup.find('li', class_='race'), 2018)
         self.assertEqual(race.grade, 'JpnⅢ')
         self.assertEqual(race.date, datetime(2018, 1, 24))
         self.assertEqual(race.name, 'TCK女王盃')
         self.assertEqual(race.course, '大井競馬場')
 
     def test_get_race_furikae(self):
-        html = '''<html><body><ul>
+        """get_raceのテスト(振替)."""
+        html = '''<html><body><h3>レース一覧（2018年）</h3><ul>
 <li class="race jpn3">
 <p class="date">4/30（振月）</p>
 <p class="name">かきつばた記念</p>
@@ -61,14 +68,15 @@ class TestDirtSchedule2Ics(TestCase):
 </li>
 </ul></body></html>'''
         soup = BeautifulSoup(html, 'html.parser')
-        race = d2i.get_race(soup.find('li', class_='race'))
+        race = d2i.get_race(soup.find('li', class_='race'), 2018)
         self.assertEqual(race.grade, 'JpnⅢ')
         self.assertEqual(race.date, datetime(2018, 4, 30))
         self.assertEqual(race.name, 'かきつばた記念')
         self.assertEqual(race.course, '名古屋競馬場')
 
-    def test_get_race_jpn1Central(self):
-        html = '''<html><body><ul>
+    def test_get_race_jpn1central(self):
+        """get_raceのテスト(JRAでのJPN1)."""
+        html = '''<html><body><h3>レース一覧（2018年）</h3><ul>
 <li class="race jpn1Central">
 <p class="date">11/4（日）</p>
 <p class="name">JBCスプリント</p>
@@ -77,14 +85,15 @@ class TestDirtSchedule2Ics(TestCase):
 </li>
 </ul></body></html>'''
         soup = BeautifulSoup(html, 'html.parser')
-        race = d2i.get_race(soup.find('li', class_='race'))
+        race = d2i.get_race(soup.find('li', class_='race'), 2018)
         self.assertEqual(race.grade, 'JpnⅠ')
         self.assertEqual(race.date, datetime(2018, 11, 4))
         self.assertEqual(race.name, 'JBCスプリント')
         self.assertEqual(race.course, 'JRA京都競馬場')
 
-    def test_get_race_g1Local(self):
-        html = '''<html><body><ul>
+    def test_get_race_g1local(self):
+        """get_raceのテスト(地方でのG1)."""
+        html = '''<html><body><h3>レース一覧（2018年）</h3><ul>
 <li class="race g1Local">
 <p class="date">12/29（土）</p>
 <p class="name">東京大賞典</p>
@@ -93,13 +102,14 @@ class TestDirtSchedule2Ics(TestCase):
 </li>
 </ul></body></html>'''
         soup = BeautifulSoup(html, 'html.parser')
-        race = d2i.get_race(soup.find('li', class_='race'))
+        race = d2i.get_race(soup.find('li', class_='race'), 2018)
         self.assertEqual(race.grade, 'GⅠ')
         self.assertEqual(race.date, datetime(2018, 12, 29))
         self.assertEqual(race.name, '東京大賞典')
         self.assertEqual(race.course, '大井競馬場')
 
     def test_race2event(self):
+        """race2eventのテスト."""
         Race = namedtuple('Race', ['grade', 'date', 'name', 'course'])
         race = Race('JpnⅢ', datetime(2018, 1, 24), 'TCK女王盃', '大井競馬場')
         event = d2i.race2event(race)
