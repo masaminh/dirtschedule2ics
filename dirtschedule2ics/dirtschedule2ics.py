@@ -20,10 +20,9 @@ def main():
                         type=argparse.FileType(mode='w'), default=sys.stdout)
     args = parser.parse_args()
     response = requests.get(args.input)
-    response.encoding = response.apparent_encoding
 
     ical = Calendar()
-    for race in get_racelist(response.text):
+    for race in get_racelist(response.content):
         ical.add_component(race2event(race))
 
     args.output.write(ical.to_ical().decode('utf-8'))
