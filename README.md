@@ -1,8 +1,8 @@
 # dirtschedule2ics
 http://www.keiba.go.jp/dirtrace/schedule.html の内容を.icsファイルに変換する
 ## Require
-* Python 3.7.2
-* beautifulsoup4 4.7.0
+* Python 3.7.3
+* beautifulsoup4 4.7.1
 * icalendar 4.0.3
 * requests 2.21.0
 ## Usage
